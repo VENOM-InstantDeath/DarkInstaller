@@ -8,7 +8,7 @@ from sys import argv
 from curses.textpad import rectangle
 from modules.menu import menu
 from time import sleep
-VERSION = '3.0.5'
+VERSION = '3.0.6'
 
 def listostr(l, c=''):
     if not isinstance(l,list): raise ValueError
@@ -243,7 +243,8 @@ def main(stdscr):
     y, x = stdscr.getmaxyx()
     cy = y//2
     cx = x//2
-
+    stdscr.addstr(y-1,0,f"Version {VERSION}")
+    stdscr.refresh()
     win=curses.newwin(5,50,cy-3, cx-25)
     win.touchwin()
     win.bkgd(' ', curses.color_pair(2))
