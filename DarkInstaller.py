@@ -3,11 +3,12 @@ import requests
 import json
 from os import getenv
 import os
+from os import path, mkdir
 from sys import argv
 from curses.textpad import rectangle
 from modules.menu import menu
 from time import sleep
-VERSION = '3.0.0'
+VERSION = '3.0.1'
 
 def listostr(l, c=''):
     if not isinstance(l,list): raise ValueError
@@ -161,7 +162,7 @@ def update(stdscr, cy, cx, data):
     ::If file exists, replace it.::
     ::If line is empty, ignore it.::
     """
-    os.chdir(argv[0])
+    os.chdir(pathcrop(argv[0]))
     stdscr.addstr(cy+5, cx-25, "Buscando actualizaciones...", curses.color_pair(2))
     stdscr.refresh()
     resp = requests.get("https://raw.githubusercontent.com/VENOM-InstantDeath/DarkInstaller/main/version").text.strip()
@@ -181,14 +182,16 @@ def update(stdscr, cy, cx, data):
         stdscr.refresh()
         stdscr.move(cy+5, cx-25);stdscr.clrtoeol()
         stdscr.addstr(cy+5, cx-25, "Descargando actualizaciones...", curses.color_pair(2))
+        stdscr.refresh()
         order = requests.get("https://raw.githubusercontent.com/VENOM-InstantDeath/DarkInstaller/main/upord").text
         curses.napms(1000)
         stdscr.move(cy+5, cx-25);stdscr.clrtoeol()
         stdscr.addstr(cy+5, cx-25, "Instalando...", curses.color_pair(2))
+        stdscr.refresh()
         interpreter(order)
         stdscr.move(cy+5, cx-25);stdscr.clrtoeol()
     else:
-        win=curses.newwin(4,50,cy-3, cx-25)
+        win=curses.newwin(5,50,cy-3, cx-25)
         win.touchwin()
         win.bkgd(' ', curses.color_pair(2))
         win.addstr(1,1,"No hay actualizaciones disponibles",curses.color_pair(3))
@@ -202,7 +205,6 @@ def update(stdscr, cy, cx, data):
 
     stdscr.move(cy+5, cx-25)
     stdscr.clrtoeol()
-    F.close()
 
 
 def main(stdscr):
