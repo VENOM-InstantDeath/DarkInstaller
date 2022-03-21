@@ -3,9 +3,23 @@ import requests
 import json
 from os import getenv
 import os
+from sys import argv
 from curses.textpad import rectangle
 from modules.menu import menu
 from time import sleep
+VERSION = '3.0.0'
+
+def listostr(l, c=''):
+    if not isinstance(l,list): raise ValueError
+    s = ""
+    for i in l:
+        s += i+c
+    return s
+
+def pathcrop(s):
+    if not '/' in s: return '.'
+    if s.count('/') == 1 and s[0] == '/': return s
+    return s[:s.rfind('/')]
 
 def vimplug(stdscr, cy, cx, data):
     if data["vim-plug"]: return
@@ -82,14 +96,123 @@ def vimconf(stdscr, cy, cx, data):
 def alacop(stdscr, cy, cx, data):
     pass
 
+def interpreter(s):
+    s = s.split('\n')
+    dir = ''
+    base_url = 'https://raw.githubusercontent.com/VENOM-InstantDeath/DarkInstaller/main'
+    for i in s:
+        if not i: continue
+        if i.startswith('::'): continue
+        if not dir:
+            t = i.split('/')
+            if i[0] == '/': t[0] = '/'+t[0]
+            if '$insdir' in t: t[t.index('$insdir')] = pathcrop(argv[0])
+            dir = listostr(t, '/')[:-1]
+            if not path.exists(dir):
+                p = ''
+                for i in t:
+                    p += i+'/'
+                    if not path.exists(p): mkdir(p)
+            continue
+        if i == 'end':
+            dir = ''
+            continue
+        t = i.split()
+        if t[0] == "download":
+            resp = requests.get(f'{base_url}/{t[1]}')
+            F = open(f'{dir}/{t[1]}', 'wb+')
+            F.write(resp.content)
+            F.close()
+
+def update(stdscr, cy, cx, data):
+    """
+    Caso 1. No hay update
+
+    tmsg: Buscando actualizaciones...
+    msgbox:
+        No hay actualizaciones disponibles.
+
+                [ OK ]
+
+    Caso 2. Hay update
+    
+    tmsg: Buscando actualizaciones...
+    msgbox:
+        Hay una nueva versión disponible.
+
+        version: 2.1.0
+        autor: VENOM-InstantDeath
+
+                [ OK ]
+
+    Formato de instrucciones de updates
+
+    $insdir
+    download DarkInstaller.py
+    download version
+    end
+
+    $insdir/modules
+    download ncRead.py
+    download menu.py
+    download vbox.py
+    end
+
+    ::If file exists, replace it.::
+    ::If line is empty, ignore it.::
+    """
+    os.chdir(argv[0])
+    stdscr.addstr(cy+5, cx-25, "Buscando actualizaciones...", curses.color_pair(2))
+    stdscr.refresh()
+    resp = requests.get("https://raw.githubusercontent.com/VENOM-InstantDeath/DarkInstaller/main/version").text.strip()
+    if VERSION != resp:
+        win=curses.newwin(7,50,cy-3, cx-25)
+        win.touchwin()
+        win.bkgd(' ', curses.color_pair(2))
+        win.addstr(1,1,"Hay una nueva versión disponible",curses.color_pair(3))
+        win.addstr(2,1,f"Version: {resp}",curses.color_pair(3))
+        win.addstr(3,1,"Autor: VENOM-InstantDeath",curses.color_pair(3))
+        win.addstr(5,22,"[OK]", curses.color_pair(4))
+        while True:
+            k=win.getch()
+            if k == 10: break
+        del win
+        stdscr.touchwin()
+        stdscr.refresh()
+        stdscr.move(cy+5, cx-25);stdscr.clrtoeol()
+        stdscr.addstr(cy+5, cx-25, "Descargando actualizaciones...", curses.color_pair(2))
+        order = requests.get("https://raw.githubusercontent.com/VENOM-InstantDeath/DarkInstaller/main/upord").text
+        curses.napms(1000)
+        stdscr.move(cy+5, cx-25);stdscr.clrtoeol()
+        stdscr.addstr(cy+5, cx-25, "Instalando...", curses.color_pair(2))
+        interpreter(order)
+        stdscr.move(cy+5, cx-25);stdscr.clrtoeol()
+    else:
+        win=curses.newwin(4,50,cy-3, cx-25)
+        win.touchwin()
+        win.bkgd(' ', curses.color_pair(2))
+        win.addstr(1,1,"No hay actualizaciones disponibles",curses.color_pair(3))
+        win.addstr(3,22,"[OK]", curses.color_pair(4))
+        while True:
+            k=win.getch()
+            if k == 10: break
+        del win
+        stdscr.touchwin()
+        stdscr.refresh()
+
+    stdscr.move(cy+5, cx-25)
+    stdscr.clrtoeol()
+    F.close()
+
+
 def main(stdscr):
     curses.start_color()
     curses.use_default_colors()
     curses.init_pair(6, 7,-1) # WHITE FG
     curses.init_pair(5, 9,-1) # RED FG
     curses.init_pair(4, 7, 1) # WHITE FG W/ RED BG
-    curses.init_pair(3, 7, 6) # WHITE FG W/ CYAN BG
-    curses.init_pair(2,-1, 6) # CYAN BG
+    curses.init_pair(3, 7, 27) # WHITE FG W/ BLUE BG
+    curses.init_pair(2,-1, 27) # BLUE BG
     curses.init_pair(1,-1, 1) # RED BG
     curses.curs_set(0)
     y, x = stdscr.getmaxyx()
@@ -120,6 +243,7 @@ def main(stdscr):
             "Nvim: Instalar vim-plug": lambda: vimplug(stdscr, cy, cx, data),
             "Nvim: Instalar plugins y config de Darth": lambda: vimconf(stdscr,cy,cx,data),
             "Instalar Alacritty y hacer transparente": exit,
+            "Actualizar": lambda: update(stdscr,cy,cx,data),
             "Salir": exit
         }
     stdscr.addstr(cy-6,cx-10, "Magia de Darth Venom", curses.color_pair(5))
