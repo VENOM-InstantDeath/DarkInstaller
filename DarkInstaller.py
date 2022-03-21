@@ -8,7 +8,7 @@ from sys import argv
 from curses.textpad import rectangle
 from modules.menu import menu
 from time import sleep
-VERSION = '3.0.2'
+VERSION = '3.0.3'
 
 def listostr(l, c=''):
     if not isinstance(l,list): raise ValueError
@@ -232,17 +232,19 @@ def main(stdscr):
     y, x = stdscr.getmaxyx()
     cy = y//2
     cx = x//2
-    stdscr.attron(curses.color_pair(2))
-    for i in range((cy+3)-(cy-3)+2):
-        for e in range((cx+22)-(cx-22)):
-            stdscr.addch((cy-3)+i, (cx-22)+e, 32)
-    stdscr.addstr(cy-1, cx-20, "Pinche Dark, alto instalador te hice XD", curses.color_pair(3))
-    stdscr.addstr(cy+3, cx-3, "[ OK ]", curses.color_pair(4))
-    stdscr.attroff(curses.color_pair(2))
+
+    win=curses.newwin(5,50,cy-3, cx-25)
+    win.touchwin()
+    win.bkgd(' ', curses.color_pair(2))
+    win.addstr(1,1,"Estimado Zack, págele la renta al señor barriga",curses.color_pair(3))
+    win.addstr(3,22,"[OK]", curses.color_pair(4))
     while True:
-        k = stdscr.getch()
+        k=win.getch()
         if k == 10: break
-    stdscr.move(0,0);stdscr.clrtobot()
+    del win
+    stdscr.touchwin()
+    stdscr.refresh()
+
     if not os.path.exists(f"{getenv('HOME')}/.local/share/DarkInstaller"):
         os.mkdir(f"{getenv('HOME')}/.local/share/DarkInstaller")
     if not os.path.exists(f"{getenv('HOME')}/.local/share/DarkInstaller/data.json"):
