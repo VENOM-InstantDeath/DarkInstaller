@@ -8,7 +8,7 @@ from sys import argv
 from curses.textpad import rectangle
 from modules.menu import menu
 from time import sleep
-VERSION = '3.0.4'
+VERSION = '3.0.5'
 
 def listostr(l, c=''):
     if not isinstance(l,list): raise ValueError
@@ -269,7 +269,7 @@ def main(stdscr):
     d = {
             "Nvim: Instalar vim-plug": lambda: vimplug(stdscr, cy, cx, data),
             "Nvim: Instalar plugins y config de Darth": lambda: vimconf(stdscr,cy,cx,data),
-            "Instalar Alacritty y hacer transparente": exit,
+            "Instalar Alacritty y hacer transparente": lambda: alacop(stdscr,cy,cx,data),
             "Actualizar": lambda: update(stdscr,cy,cx,data),
             "Salir": exit
         }
