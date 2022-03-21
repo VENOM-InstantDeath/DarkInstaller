@@ -8,7 +8,7 @@ from sys import argv
 from curses.textpad import rectangle
 from modules.menu import menu
 from time import sleep
-VERSION = '3.0.3'
+VERSION = '3.0.4'
 
 def listostr(l, c=''):
     if not isinstance(l,list): raise ValueError
@@ -95,7 +95,18 @@ def vimconf(stdscr, cy, cx, data):
 
 
 def alacop(stdscr, cy, cx, data):
-    pass
+    win=curses.newwin(5,50,cy-3, cx-25)
+    win.touchwin()
+    win.bkgd(' ', curses.color_pair(2))
+    win.addstr(1,1,"Esta función no está disponible aún",curses.color_pair(3))
+    win.addstr(3,22,"[OK]", curses.color_pair(4))
+    while True:
+        k=win.getch()
+        if k == 10: break
+    del win
+    stdscr.touchwin()
+    stdscr.refresh()
+
 
 def interpreter(s):
     s = s.split('\n')
