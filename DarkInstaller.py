@@ -8,7 +8,7 @@ from sys import argv
 from curses.textpad import rectangle
 from modules.menu import menu
 from time import sleep
-VERSION = '3.0.1'
+VERSION = '3.0.2'
 
 def listostr(l, c=''):
     if not isinstance(l,list): raise ValueError
@@ -190,6 +190,18 @@ def update(stdscr, cy, cx, data):
         stdscr.refresh()
         interpreter(order)
         stdscr.move(cy+5, cx-25);stdscr.clrtoeol()
+        win=curses.newwin(6,50,cy-3, cx-25)
+        win.touchwin()
+        win.bkgd(' ', curses.color_pair(2))
+        win.addstr(1,1,"Actualización completada",curses.color_pair(3))
+        win.addstr(2,1,"Reinicia el programa para ver los cambios",curses.color_pair(3))
+        win.addstr(4,22,"[OK]", curses.color_pair(4))
+        while True:
+            k=win.getch()
+            if k == 10: break
+        del win
+        stdscr.touchwin()
+        stdscr.refresh()
     else:
         win=curses.newwin(5,50,cy-3, cx-25)
         win.touchwin()
