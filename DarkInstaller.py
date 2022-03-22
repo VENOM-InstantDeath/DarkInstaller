@@ -8,7 +8,7 @@ from sys import argv
 from curses.textpad import rectangle
 from modules.menu import menu
 from time import sleep
-VERSION = '3.1.0'
+VERSION = '3.1.1'
 
 def listostr(l, c=''):
     if not isinstance(l,list): raise ValueError
@@ -332,10 +332,11 @@ def main(stdscr):
     del win
     stdscr.touchwin()
     stdscr.refresh()
-
-    if not os.path.exists(f"{getenv('HOME')}/.local/share/DarkInstaller"):
-        os.mkdir(f"{getenv('HOME')}/.local/share/DarkInstaller")
-    if not os.path.exists(f"{getenv('HOME')}/.local/share/DarkInstaller/data.json"):
+    if not path.exists(f"{getenv('HOME')}/.local"): mkdir(f"{getenv('HOME')}/.local")
+    if not path.exists(f"{getenv('HOME')}/.local/share"): mkdir(f"{getenv('HOME')}/.local/share")
+    if not path.exists(f"{getenv('HOME')}/.local/share/DarkInstaller"):
+        mkdir(f"{getenv('HOME')}/.local/share/DarkInstaller")
+    if not path.exists(f"{getenv('HOME')}/.local/share/DarkInstaller/data.json"):
         F = open(f"{getenv('HOME')}/.local/share/DarkInstaller/data.json", "w+")
         F.write(json.dumps({"vim-plug": False,
             "plugin&config": False,
