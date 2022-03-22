@@ -2,6 +2,6 @@ $insdir
 download DarkInstaller.py
 end
 
-$insdir/modules/
-download modules/ncRead.py
-end
+::$insdir/modules/
+::download modules/ncRead.py
+::end
