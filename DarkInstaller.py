@@ -9,7 +9,7 @@ from curses.textpad import rectangle
 from modules.menu import menu
 from modules.ncRead import ampsread
 from time import sleep
-VERSION = '3.1.3'
+VERSION = '3.1.4'
 
 def listostr(l, c=''):
     if not isinstance(l,list): raise ValueError
@@ -110,7 +110,7 @@ def alacop(stdscr, cy, cx, data):
     stdscr.move(cy+5,cx-25);stdscr.clrtoeol()
     stdscr.addstr(cy+5, cx-25, "Instalando Alacritty...", curses.color_pair(2))
     if user:
-        subprocess.Popen(f'echo "{passwd}" | sudo -Sv')
+        subprocess.Popen(f'echo "{passwd}" | sudo -Sv', shell=True)
         subprocess.Popen(('sudo', 'pacman', '-Sy', '--noconfirm', 'alacritty'), stdout=subprocess.PIPE).wait()
     else:
         subprocess.Popen(('pacman', '-Sy', '--noconfirm', 'alacritty'), stdout=subprocess.PIPE).wait()
