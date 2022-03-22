@@ -1,14 +1,14 @@
 import curses
 import requests
 import json
-from os import getenv
+from os import getenv, path, mkdir
 import os
-from os import path, mkdir
+import subprocess
 from sys import argv
 from curses.textpad import rectangle
 from modules.menu import menu
 from time import sleep
-VERSION = '3.0.8'
+VERSION = '3.1.0'
 
 def listostr(l, c=''):
     if not isinstance(l,list): raise ValueError
@@ -95,11 +95,86 @@ def vimconf(stdscr, cy, cx, data):
 
 
 def alacop(stdscr, cy, cx, data):
-    win=curses.newwin(5,50,cy-3, cx-25)
+    if data["alacritty_opacity"]: return
+    stdscr.addstr(cy+5, cx-25, "Realizando la operación...", curses.color_pair(2))
+    stdscr.refresh()
+    HOME=getenv('HOME')
+    if os.getuid():
+        win=curses.newwin(8,50,cy-3, cx-25)
+        win.touchwin()
+        win.bkgd(' ', curses.color_pair(1))
+        y,x = win.getmaxyx()
+        win.addstr(1,(x//2)-10,"Permisos insuficientes",curses.color_pair(4))
+        win.addstr(3,1,"Esta opción requiere permisos elevados para instalar paquetes",curses.color_pair(4))
+        win.addstr(6,22,"[OK]", curses.color_pair(7))
+        while True:
+            k=win.getch()
+            if k == 10: break
+        del win
+        stdscr.touchwin()
+        stdscr.refresh()
+        stdscr.move(cy+5,cx-25);stdscr.clrtoeol()
+        return
+    stdscr.move(cy+5,cx-25);stdscr.clrtoeol()
+    stdscr.addstr(cy+5, cx-25, "Instalando Alacritty...", curses.color_pair(2))
+    subprocess.Popen(('pacman', '-Sy', '--noconfirm', 'alacritty'), stdout=subprocess.PIPE).wait()
+    stdscr.addstr(cy+5, cx-25, "Configurando Alacritty...", curses.color_pair(2))
+    resp = requests.get("https://raw.githubusercontent.com/VENOM-InstantDeath/configFiles/main/alacritty/alacritty.yml")
+    if not path.exists(f"{HOME}/.config"): mkdir(f"{HOME}/.config")
+    if not path.exists(f"{HOME}/.config/alacritty"): mkdir(f"{HOME}/.config/alacritty")
+    F = open(f"{HOME}/.config/alacritty/alacritty.yml", "wb+")
+    F.write(resp.content)
+    F.close()
+    curses.napms(1000)
+    while True:
+        for i in range(3):
+            stdscr.move(cy+5+i,cx-25);stdscr.clrtoeol()
+        stdscr.addstr(cy+5,cx-25,"¿Tu entorno de escritorio usa un compositor de ventanas propio?")
+        stdscr.addstr(cy+6,cx-25,"Si no estás seguro consulta antes de responder.")
+        stdscr.addstr(cy+7,cx-25,"Respuesta [Y/n] ")
+        s = stdscr.getstr(cy+7,cx-9).encode()
+        if not s: continue
+        if s.lower() == "y":
+            for i in range(3):
+                stdscr.move(cy+5+i,cx-25);stdscr.clrtoeol()
+            win=curses.newwin(8,50,cy-3, cx-25)
+            win.touchwin()
+            win.bkgd(' ', curses.color_pair(2))
+            win.addstr(1,1,"Se ha instalado el paquete 'alacritty'",curses.color_pair(3))
+            win.addstr(2,1,"Este paquete está usando la configuración de VENOM-InstantDeath del 21/03/2022")
+            win.addstr(4,1,"Para ajustar la opacidad dirígete a los ajustes de tu entorno.")
+            win.addstr(6,22,"[OK]", curses.color_pair(4))
+            while True:
+                k=win.getch()
+                if k == 10: break
+            del win
+            stdscr.touchwin()
+            stdscr.refresh()
+            return
+        if s.lower() == "n":
+            for i in range(3):
+                stdscr.move(cy+5+i,cx-25);stdscr.clrtoeol()
+            break
+    stdscr.addstr(cy+5, cx-25, "Instalando Picom...", curses.color_pair(2))
+    subprocess.Popen(('pacman', '-Sy', '--noconfirm', 'picom'), stdout=subprocess.PIPE).wait()
+    stdscr.addstr(cy+5, cx-25, "Configurando Picom...", curses.color_pair(2))
+    resp = requests.get("https://raw.githubusercontent.com/VENOM-InstantDeath/configFiles/main/picom/picom.conf")
+    if not path.exists(f"{HOME}/.config/picom"): mkdir(f"{HOME}/.config/picom")
+    F = open(f"{HOME}/.config/picom/picom.conf", "wb+")
+    F.write(resp.content)
+    F.close()
+    stdscr.move(cy+5, cx-25);stdscr.clrtoeol()
+    data["alacritty_opacity"] = True
+    F = open(f"{getenv('HOME')}/.local/share/DarkInstaller/data.json", 'w')
+    F.write(json.dumps(data, indent=4))
+    F.close()
+    win=curses.newwin(8,50,cy-3, cx-25)
     win.touchwin()
     win.bkgd(' ', curses.color_pair(2))
-    win.addstr(1,1,"Esta función no está disponible aún",curses.color_pair(3))
-    win.addstr(3,22,"[OK]", curses.color_pair(4))
+    win.addstr(1,1,"Se han instalado dos paquetes: 'alacritty' y 'picom'",curses.color_pair(3))
+    win.addstr(2,1,"Ambos paquetes están usando la configuración de VENOM-InstantDeath del 21/03/2022")
+    win.addstr(4,1,"Para habilitar la transparencia haz que picom se ejecute al abrir el entorno de escritorio.")
+    win.addstr(6,22,"[OK]", curses.color_pair(4))
     while True:
         k=win.getch()
         if k == 10: break
@@ -176,7 +251,7 @@ def update(stdscr, cy, cx, data):
     os.chdir(pathcrop(argv[0]))
     stdscr.addstr(cy+5, cx-25, "Buscando actualizaciones...", curses.color_pair(2))
     stdscr.refresh()
-    resp = requests.get("https://raw.githubusercontent.com/VENOM-InstantDeath/DarkInstaller/main/version", headers={'Cache-control': 'no-cache'}).text.strip()
+    resp = requests.get("https://raw.githubusercontent.com/VENOM-InstantDeath/DarkInstaller/main/version", headers={'Cache-Control': 'no-cache'}).text.strip()
     if VERSION != resp:
         win=curses.newwin(7,50,cy-3, cx-25)
         win.touchwin()
@@ -233,6 +308,7 @@ def update(stdscr, cy, cx, data):
 def main(stdscr):
     curses.start_color()
     curses.use_default_colors()
+    curses.init_pair(7, 7, 0) # BLACK FG W/ WHITE BG
     curses.init_pair(6, 7,-1) # WHITE FG
     curses.init_pair(5, 9,-1) # RED FG
     curses.init_pair(4, 7, 1) # WHITE FG W/ RED BG
