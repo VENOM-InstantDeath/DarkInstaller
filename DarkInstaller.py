@@ -9,7 +9,7 @@ from curses.textpad import rectangle
 from modules.menu import menu
 from modules.ncRead import ampsread
 from time import sleep
-VERSION = '3.1.2'
+VERSION = '3.1.3'
 
 def listostr(l, c=''):
     if not isinstance(l,list): raise ValueError
@@ -207,6 +207,8 @@ def interpreter(s):
         t = i.split()
         if t[0] == "download":
             resp = requests.get(f'{base_url}/{t[1]}')
+            if t[1].count('/'):
+                t[1] = t[1][t[1].rfind('/')+1:]
             F = open(f'{dir}/{t[1]}', 'wb+')
             F.write(resp.content)
             F.close()
