@@ -7,8 +7,9 @@ import subprocess
 from sys import argv
 from curses.textpad import rectangle
 from modules.menu import menu
+from modules.ncRead import ampsread
 from time import sleep
-VERSION = '3.1.1'
+VERSION = '3.1.2'
 
 def listostr(l, c=''):
     if not isinstance(l,list): raise ValueError
@@ -95,29 +96,24 @@ def vimconf(stdscr, cy, cx, data):
 
 
 def alacop(stdscr, cy, cx, data):
+    user = False
     if data["alacritty_opacity"]: return
     stdscr.addstr(cy+5, cx-25, "Realizando la operación...", curses.color_pair(2))
     stdscr.refresh()
     HOME=getenv('HOME')
+    USER=getenv('USER')
     if os.getuid():
-        win=curses.newwin(8,50,cy-3, cx-25)
-        win.touchwin()
-        win.bkgd(' ', curses.color_pair(1))
-        y,x = win.getmaxyx()
-        win.addstr(1,(x//2)-10,"Permisos insuficientes",curses.color_pair(4))
-        win.addstr(3,1,"Esta opción requiere permisos elevados para instalar paquetes",curses.color_pair(4))
-        win.addstr(6,22,"[OK]", curses.color_pair(7))
-        while True:
-            k=win.getch()
-            if k == 10: break
-        del win
-        stdscr.touchwin()
-        stdscr.refresh()
-        stdscr.move(cy+5,cx-25);stdscr.clrtoeol()
-        return
+        user = True
+        stdscr.addstr(cy+6,cx-25,f"[sudo] password for {USER}: ")
+        passwd = ampsread(stdscr,cy+6,cx+3,mode=1)
+        stdscr.move(cy+6,cx-25);stdscr.clrtoeol()
     stdscr.move(cy+5,cx-25);stdscr.clrtoeol()
     stdscr.addstr(cy+5, cx-25, "Instalando Alacritty...", curses.color_pair(2))
-    subprocess.Popen(('pacman', '-Sy', '--noconfirm', 'alacritty'), stdout=subprocess.PIPE).wait()
+    if user:
+        subprocess.Popen(f'echo "{passwd}" | sudo -Sv')
+        subprocess.Popen(('sudo', 'pacman', '-Sy', '--noconfirm', 'alacritty'), stdout=subprocess.PIPE).wait()
+    else:
+        subprocess.Popen(('pacman', '-Sy', '--noconfirm', 'alacritty'), stdout=subprocess.PIPE).wait()
     stdscr.addstr(cy+5, cx-25, "Configurando Alacritty...", curses.color_pair(2))
     resp = requests.get("https://raw.githubusercontent.com/VENOM-InstantDeath/configFiles/main/alacritty/alacritty.yml")
     if not path.exists(f"{HOME}/.config"): mkdir(f"{HOME}/.config")
@@ -156,7 +152,11 @@ def alacop(stdscr, cy, cx, data):
                 stdscr.move(cy+5+i,cx-25);stdscr.clrtoeol()
             break
     stdscr.addstr(cy+5, cx-25, "Instalando Picom...", curses.color_pair(2))
-    subprocess.Popen(('pacman', '-Sy', '--noconfirm', 'picom'), stdout=subprocess.PIPE).wait()
+    if user:
+        subprocess.Popen(f'echo "{passwd}" | sudo -Sv', shell=True)
+        subprocess.Popen(('sudo', 'pacman', '-Sy', '--noconfirm', 'picom'), stdout=subprocess.PIPE).wait()
+    else:
+        subprocess.Popen(('pacman', '-Sy', '--noconfirm', 'picom'), stdout=subprocess.PIPE).wait()
     stdscr.addstr(cy+5, cx-25, "Configurando Picom...", curses.color_pair(2))
     resp = requests.get("https://raw.githubusercontent.com/VENOM-InstantDeath/configFiles/main/picom/picom.conf")
     if not path.exists(f"{HOME}/.config/picom"): mkdir(f"{HOME}/.config/picom")
