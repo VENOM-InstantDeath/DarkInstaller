@@ -8,7 +8,7 @@ from sys import argv
 from curses.textpad import rectangle
 from modules.menu import menu
 from time import sleep
-VERSION = '3.0.6'
+VERSION = '3.0.7'
 
 def listostr(l, c=''):
     if not isinstance(l,list): raise ValueError
@@ -248,7 +248,7 @@ def main(stdscr):
     win=curses.newwin(5,50,cy-3, cx-25)
     win.touchwin()
     win.bkgd(' ', curses.color_pair(2))
-    win.addstr(1,1,"Estimado Zack, págele la renta al señor barriga",curses.color_pair(3))
+    win.addstr(1,1,"Bienvenido al instalador mágico de Darth Venom",curses.color_pair(3))
     win.addstr(3,22,"[OK]", curses.color_pair(4))
     while True:
         k=win.getch()
