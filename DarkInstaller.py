@@ -8,7 +8,7 @@ from sys import argv
 from curses.textpad import rectangle
 from modules.menu import menu
 from time import sleep
-VERSION = '3.0.7'
+VERSION = '3.0.8'
 
 def listostr(l, c=''):
     if not isinstance(l,list): raise ValueError
@@ -176,7 +176,7 @@ def update(stdscr, cy, cx, data):
     os.chdir(pathcrop(argv[0]))
     stdscr.addstr(cy+5, cx-25, "Buscando actualizaciones...", curses.color_pair(2))
     stdscr.refresh()
-    resp = requests.get("https://raw.githubusercontent.com/VENOM-InstantDeath/DarkInstaller/main/version").text.strip()
+    resp = requests.get("https://raw.githubusercontent.com/VENOM-InstantDeath/DarkInstaller/main/version", headers={'Cache-control': 'no-cache'}).text.strip()
     if VERSION != resp:
         win=curses.newwin(7,50,cy-3, cx-25)
         win.touchwin()
