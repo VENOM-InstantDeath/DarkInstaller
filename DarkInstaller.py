@@ -9,7 +9,7 @@ from curses.textpad import rectangle
 from modules.menu import menu
 from modules.ncRead import ampsread
 from time import sleep
-VERSION = '3.1.4'
+VERSION = '3.1.5'
 
 def listostr(l, c=''):
     if not isinstance(l,list): raise ValueError
@@ -109,12 +109,14 @@ def alacop(stdscr, cy, cx, data):
         stdscr.move(cy+6,cx-25);stdscr.clrtoeol()
     stdscr.move(cy+5,cx-25);stdscr.clrtoeol()
     stdscr.addstr(cy+5, cx-25, "Instalando Alacritty...", curses.color_pair(2))
+    stdscr.refresh()
     if user:
         subprocess.Popen(f'echo "{passwd}" | sudo -Sv', shell=True)
         subprocess.Popen(('sudo', 'pacman', '-Sy', '--noconfirm', 'alacritty'), stdout=subprocess.PIPE).wait()
     else:
         subprocess.Popen(('pacman', '-Sy', '--noconfirm', 'alacritty'), stdout=subprocess.PIPE).wait()
     stdscr.addstr(cy+5, cx-25, "Configurando Alacritty...", curses.color_pair(2))
+    stdscr.refresh()
     resp = requests.get("https://raw.githubusercontent.com/VENOM-InstantDeath/configFiles/main/alacritty/alacritty.yml")
     if not path.exists(f"{HOME}/.config"): mkdir(f"{HOME}/.config")
     if not path.exists(f"{HOME}/.config/alacritty"): mkdir(f"{HOME}/.config/alacritty")
@@ -128,7 +130,8 @@ def alacop(stdscr, cy, cx, data):
         stdscr.addstr(cy+5,cx-25,"¿Tu entorno de escritorio usa un compositor de ventanas propio?")
         stdscr.addstr(cy+6,cx-25,"Si no estás seguro consulta antes de responder.")
         stdscr.addstr(cy+7,cx-25,"Respuesta [Y/n] ")
-        s = stdscr.getstr(cy+7,cx-9).encode()
+        stdscr.refresh()
+        s = stdscr.getstr(cy+7,cx-9).decode()
         if not s: continue
         if s.lower() == "y":
             for i in range(3):
